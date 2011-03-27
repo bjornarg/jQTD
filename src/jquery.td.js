@@ -220,10 +220,19 @@
                 $(window).bind('keypress', function(e) {
                     usedButton = false;
                     if (e.charCode >= 49 && e.charCode <= 57) {
+                        // 1-9
                         charCode = e.charCode - 49;
                         if (charCode < game.settings.towers.length) {
                             game.guiObject = game.settings.towers[charCode];
                             usedButton = true;
+                        }
+                    } else if (e.charCode == 117) {
+                        // "u"-key
+                        if (game.selected !== undefined) {
+                            if (game.selected.upgradeCost() <= game.cash) {
+                                game.cash -= game.selected.upgradeCost();
+                                game.selected.upgrade();
+                            }
                         }
                     }
                     if (usedButton) {
@@ -276,6 +285,10 @@
                     this.select();
                     return;
                 }
+                if (this.cash < this.guiObject.costLevels[0]) {
+                    return
+                }
+                this.cash -= this.guiObject.costLevels[0];
                 position = [cell[0]*this.settings.cellWidth,
                     cell[1]*this.settings.cellHeight];
                 tower = new classes.Tower(
@@ -686,7 +699,8 @@
             this.settings = settings;
             this.position = position;
             this.cellSize = cellSize;
-            this.center = [position[0]+cellSize[0], position[1]+cellSize[1]];
+            this.center = [position[0]+cellSize[0]/2,
+                position[1]+cellSize[1]/2];
             // Default setup
             this.level = 1;
             this.damage = this.settings.damageLevels[0];
@@ -761,13 +775,17 @@
                     );
                 }
             };
+            this.upgradeCost = function() {
+                return this.settings.costLevels[this.level];
+            };
             // Upgrades the tower to the next level
             this.upgrade = function() {
                 if ( this.level >= this.settings.maxLevel ) {
                     return;
                 }
                 this.damage = this.settings.damageLevels[this.level];
-                this.range = this.settings.damageLevels[this.level];
+                this.range = this.settings.rangeLevels[this.level];
+                this.fireRate = this.settings.fireRateLevels[this.level];
                 this.level++;
             };
         },
