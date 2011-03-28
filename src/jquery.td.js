@@ -181,7 +181,7 @@
                 var towerRows = Math.ceil(
                     this.settings.towersLength / towersPerRow
                 );
-                var startHeight = this.settings.textHeight*5;
+                var startHeight = this.settings.design.textHeight*5;
                 var spacing = this.settings.cellWidth / ( towersPerRow * 2 );
                 this.menuGrid = new Array( towerRows );
                 this.menuGrid.endHeight = (startHeight+(this.settings.cellHeight+spacing)*
@@ -445,14 +445,14 @@
                     this.projectiles[i].draw(this.context);
                 }
                 if (this.selected !== undefined && this.selected.type == 'tower') {
-                    this.context.strokeStyle = this.settings.rangeStrokeColor;
+                    this.context.strokeStyle = this.settings.design.rangeStrokeColor;
                     helperFunctions.strokeCircle(
                         this.context,
                         this.selected.position[0]+this.settings.cellWidth/2,
                         this.selected.position[1]+this.settings.cellHeight/2,
                         this.selected.range
                     );
-                    this.context.fillStyle = this.settings.rangeFillColor;
+                    this.context.fillStyle = this.settings.design.rangeFillColor;
                     helperFunctions.fillCircle(
                         this.context,
                         this.selected.position[0]+this.settings.cellWidth/2,
@@ -463,9 +463,9 @@
                 this.drawMenu();
                 currentTime = helperFunctions.time();
                 if (currentTime < this.waveStart) {
-                    this.context.strokeStyle = this.settings.dialogBorderColor;
-                    this.context.fillStyle = this.settings.dialogBackgroundColor;
-                    this.context.font = this.settings.largeTextStyle;
+                    this.context.strokeStyle = this.settings.design.dialogBorderColor;
+                    this.context.fillStyle = this.settings.design.dialogBackgroundColor;
+                    this.context.font = this.settings.design.largeTextStyle;
                     timeToNextWave = Math.round((this.waveStart-currentTime)/1000);
                     nextWaveText = "Next wave in "+timeToNextWave+"s";
                     nextWaveWidth = this.context.measureText(nextWaveText).width;
@@ -474,28 +474,28 @@
                         this.context,
                         widthLeft/4, 50,
                         nextWaveWidth+widthLeft/2,
-                        this.settings.largeTextHeight*2, 5
+                        this.settings.design.largeTextHeight*2, 5
                     );
                     helperFunctions.strokeRoundedRect(
                         this.context,
                         widthLeft/4, 50,
                         nextWaveWidth+widthLeft/2,
-                        this.settings.largeTextHeight*2, 5
+                        this.settings.design.largeTextHeight*2, 5
                     );
-                    this.context.fillStyle = this.settings.textColor;
+                    this.context.fillStyle = this.settings.design.textColor;
                     this.context.fillText(
                         nextWaveText, widthLeft/2,
-                        50+this.settings.largeTextHeight
+                        50+this.settings.design.largeTextHeight
                     );
                 }
             };
             this.drawMenu = function() {
-                this.context.fillStyle = this.settings.menuBackgroundColor;
+                this.context.fillStyle = this.settings.design.menuBackgroundColor;
                 this.context.fillRect(
                     this.gameWidth, 0, this.settings.menuWidth, this.gameHeight
                 );
-                this.context.font = this.settings.textStyle;
-                this.context.fillStyle = this.settings.menuTextColor;
+                this.context.font = this.settings.design.textStyle;
+                this.context.fillStyle = this.settings.design.menuTextColor;
                 var waveString = this.settings.waveText+': '+(this.wave+1);
                 var waveWidth = this.context.measureText(waveString).width;
                 var cashString = this.settings.cashText+': '+this.cash;
@@ -507,22 +507,22 @@
                 this.context.fillText(
                     waveString,
                     this.gameWidth+(this.settings.menuWidth-waveWidth)/2,
-                    this.settings.textHeight
+                    this.settings.design.textHeight
                 );
                 this.context.fillText(
                     cashString,
                     this.gameWidth+(this.settings.menuWidth-cashWidth)/2,
-                    this.settings.textHeight*2
+                    this.settings.design.textHeight*2
                 );
                 this.context.fillText(
                     scoreString,
                     this.gameWidth+(this.settings.menuWidth-scoreWidth)/2,
-                    this.settings.textHeight*3
+                    this.settings.design.textHeight*3
                 );
                 this.context.fillText(
                     liveString,
                     this.gameWidth+(this.settings.menuWidth-liveWidth)/2,
-                    this.settings.textHeight*4
+                    this.settings.design.textHeight*4
                 );
                 for (var i=0; i<this.settings.towersLength; i++) {
                     this.context.fillStyle = this.settings.towers[i].color;
@@ -535,7 +535,9 @@
                         this.settings.cellHeight
                     );
                 }
-                if (this.selected !== undefined && this.selected.type == 'tower') {
+                if (this.selected !== undefined) {
+                    if (this.selected.type == 'tower') {
+                    }
                 }
             };
 
@@ -544,13 +546,13 @@
             this.endGame = function() {
                 this.context.clearRect(0, 0, this.gameWidth, this.gameHeight);
                 this.running = false;
-                this.context.font = this.settings.largeTextStyle;
-                this.context.fillStyle = this.settings.dialogBackgroundColor;
-                this.context.strokeStyle = this.settings.dialogBorderColor;
+                this.context.font = this.settings.design.largeTextStyle;
+                this.context.fillStyle = this.settings.design.dialogBackgroundColor;
+                this.context.strokeStyle = this.settings.design.dialogBorderColor;
                 if (this.settings.callback !== undefined) {
                     this.settings.callback(this.score);
                 }
-                this.context.fillStyle = this.settings.textColor;
+                this.context.fillStyle = this.settings.design.textColor;
                 reclickText = "Click to restart";
                 reclickWidth = this.context.measureText(reclickText).width;
                 this.context.fillText(
@@ -724,7 +726,7 @@
                         switch ( this.elements[x][y] ) {
                             case 'c':
                             case 'r':
-                                context.fillStyle = settings.roadColor;
+                                context.fillStyle = settings.design.roadColor;
                                 context.fillRect(
                                     x*cellSize[0], y*cellSize[1],
                                     cellSize[0], cellSize[1]
@@ -1007,22 +1009,13 @@
     };
     var methods = {
         init : function( options ) {
-            var settings = {
+            var design = {
                 'textStyle': '12pt Arial',
                 'textHeight': 20, // Since there's no way to measure this
                 'largeTextStyle': '20pt Arial',
                 'largeTextHeight': 30,
-
-                'waveText': 'Wave',
-                'cashText': 'Cash',
-                'scoreText': 'Score',
-                'liveText': 'Lives',
                 'backgroundColor': 'white',
                 'textColor': 'black',
-                'cellWidth': 0, // Will be set when map is parsed
-                'cellHeight': 0, // Will be set when map is parsed
-                'creeps': [],
-                'map': '',
                 'menuBackgroundColor': 'rgb(22, 33, 16)',
                 'menuTextColor': 'rgb(191, 205, 184)',
                 'dialogBackgroundColor': 'rgba(83, 93, 87, 0.5)',
@@ -1030,13 +1023,25 @@
                 'dialogTextColor': 'rgb(124, 159, 105)',
                 'rangeStrokeColor': 'rgba(108, 127, 97, 0.8)',
                 'rangeFillColor': 'rgba(191, 205, 184, 0.2)',
-                'menuWidth': 0,
+
+                'roadColor': 'rgb(10, 0, 12)',
+            }
+            var settings = {
+                'waveText': 'Wave',
+                'cashText': 'Cash',
+                'scoreText': 'Score',
+                'liveText': 'Lives',
+                'cellWidth': 0, // Will be set when map is parsed
+                'cellHeight': 0, // Will be set when map is parsed
+                'creeps': [],
+                'map': '',
                 'score': 0,
                 'cash': 0,
                 'lives': 5,
                 'towers': [],
                 'wave': 0,
                 'timeBetweenWaves': 5000,
+                'menuWidth': 0,
             };
             // As it is jQuery standard to return the object to maintain
             // chainability, we do it here. Don't really know when it will be
@@ -1045,7 +1050,11 @@
                 var $this = $(this);
                 if ( options ) {
                     $.extend( settings, options );
+                    if ( options.design ) {
+                        $.extend( design, options.design );
+                    }
                 }
+                settings.design = design;
                 var game = new classes['Game']( $this[0], settings );
                 game.init();
                 var updateFunction = function() {
