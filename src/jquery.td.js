@@ -712,6 +712,8 @@
             this.fireRate = this.settings.fireRateLevels[0];
             this.lastFire = 0;
 
+            this.lock = undefined;
+
             this.type = 'tower';
 
             // Finds positions for a dot per level
@@ -729,6 +731,24 @@
             this.update = function(game) {
                 currentTime = helperFunctions.time();
                 if (currentTime-this.lastFire >= this.fireRate) {
+                    if (this.lock !== undefined) {
+                        if (this.lock.destroyed ||
+                            !inRange(this.center,
+                                     this.range+this.lock.settings.radius,
+                                     this.lock.position)) {
+                            this.lock = undefined;
+                        } else {
+                            game.projectiles.push(
+                                new classes.Projectile(
+                                    {'seeking': this.settings.seeking,
+                                     'speed': this.settings.projectileSpeed,
+                                     'damage': this.damage,
+                                     'color': this.settings.projectileColor,
+                                     'radius': this.settings.projectileRadius},
+                                    this.center, this.lock)
+                            );
+                        }
+                    }
                     creepLength = game.creeps.length;
                     for (var i=0; i<creepLength; i++) {
                         if (helperFunctions.inRange(
