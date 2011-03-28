@@ -59,6 +59,13 @@
             context.closePath();
             context.stroke();
         },
+        drawBar : function( context, x, y, width, height, percentage,
+                           innerColor, outerColor) {
+            context.fillStyle = outerColor;
+            context.fillRect(x, y, width, height);
+            context.fillStyle = innerColor;
+            context.fillRect(x+1, y+1, (width-2)*percentage, height-2);
+        },
         // Returns a clone of an object. Performs no deep copying.
         cloneObject : function( object ) {
             newObject = {};
@@ -173,9 +180,11 @@
                 var towerRows = Math.ceil(
                     this.settings.towersLength / towersPerRow
                 );
-                var startHeight = this.settings.textHeight*4;
+                var startHeight = this.settings.textHeight*5;
                 var spacing = this.settings.cellWidth / ( towersPerRow * 2 );
                 this.menuGrid = new Array( towerRows );
+                this.menuGrid.endHeight = (startHeight+(this.settings.cellHeight+spacing)*
+                                           towerRows+this.settings.cellHeight);
                 for (var i=0; i<towerRows; i++) {
                     for (var j=0; j<towersPerRow; j++) {
                         if (i*towersPerRow+j > this.settings.towersLength) {
@@ -502,6 +511,8 @@
                         this.settings.cellHeight
                     );
                 }
+                if (this.selected !== undefined && this.selected.type == 'tower') {
+                }
             };
 
             /* End game */
@@ -818,6 +829,8 @@
             this.settings = settings;
             this.level = level;
 
+            this.type = "creep";
+
             this.init = function( game ) {
                 this.position = game.getCellCenter(this.path[0].line[0]);
                 this.direction = this.path[0].direction;
@@ -884,13 +897,22 @@
                     game.cash += this.worth;
                 }
             };
-            this.draw = function( context ) {
+            this.draw = function( context, showHp ) {
                 if (this.settings.image === undefined) {
                     context.fillStyle = this.settings.color;
                     helperFunctions.fillCircle(
                         context,
                         this.position[0], this.position[1],
                         this.settings.radius
+                    );
+                }
+                if (showHp && this.hp>0) {
+                    helperFunctions.drawBar(
+                        context, this.position[0]-this.settings.radius,
+                        this.position[1]+this.settings.radius,
+                        this.settings.radius*2, 5,
+                        this.hp/this.settings.hpLevels[this.level-1],
+                        "red", "green"
                     );
                 }
             };
@@ -930,7 +952,7 @@
                     }
                     if (helperFunctions.inRange(
                         this.position, radius, target.position)) {
-                        this.target.hp -= this.damage;
+                        this.target.hp -= this.settings.damage;
                         this.destroyed = true;
                     }
                 } else {
