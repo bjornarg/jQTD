@@ -210,9 +210,6 @@
                 $(window).unbind('keypress');
                 game = this;
                 $(this.canvas).bind('mousemove', function(e) {
-                    if (game.guiObject === undefined) {
-                        return;
-                    }
                     canvasPosition = $(this).position();
                     game.mouseX = e.pageX-canvasPosition.left;
                     game.mouseY = e.pageY-canvasPosition.top;
@@ -221,13 +218,15 @@
                     if (!game.running) {
                         game.init();
                     } else {
-                        if (game.guiObject === undefined) {
-                            canvasPosition = $(this).position();
-                            game.mouseX = e.pageX-canvasPosition.left;
-                            game.mouseY = e.pageY-canvasPosition.top;
-                            game.select();
+                        if (game.mouseX > game.gameWidth && game.mouseX < game.canvas.width) {
+                            // Inside the menu
+                            game.menuSelect();
                         } else {
-                            game.build();
+                            if (game.guiObject === undefined) {
+                                game.select();
+                            } else {
+                                game.build();
+                            }
                         }
                     }
                 });
@@ -248,9 +247,15 @@
                                 game.selected.upgrade();
                             }
                         }
+                        usedButton = true;
                     } else if (e.charCode == 104) {
                         // "h"-key
                         game.showHP = true;
+                        usedButton = true;
+                    } else if (e.charCode == 99) {
+                        // "c"-key
+                        game.guiObject = undefined;
+                        usedButton = true;
                     }
                     if (usedButton) {
                         e.preventDefault();
@@ -289,6 +294,21 @@
                                 [this.creeps[i].x, this.creeps[i].y])) {
                             this.selected = this.creeps[i];
                             break;
+                        }
+                    }
+                }
+            };
+
+            this.menuSelect = function() {
+                for (var i=0; i<this.menuGrid.length; i++) {
+                    for (var j=0; j<this.menuGrid[i].length; j++) {
+                        if (this.mouseX >= this.menuGrid[i][j][0] && 
+                                this.mouseX < this.menuGrid[i][j][0]+this.settings.cellWidth && 
+                                this.mouseY >= this.menuGrid[i][j][1] && 
+                                this.mouseY < this.menuGrid[i][j][1]+this.settings.cellWidth) {
+                            var towerNumber = i+j*this.menuGrid.length;
+                            this.guiObject = this.settings.towers[towerNumber];
+                            return;
                         }
                     }
                 }
