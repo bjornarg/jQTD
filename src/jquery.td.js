@@ -71,7 +71,11 @@
             xDistance = target[0]-position[0];
             yDistance = target[1]-position[1];
             if (xDistance == 0) {
-                return 0;
+                if (yDistance > 0) {
+                    return Math.PI/2;
+                } else {
+                    return 3*Math.PI/2;
+                }
             }
             if (xDistance < 0) {
                 return Math.PI+Math.atan(yDistance / xDistance);
