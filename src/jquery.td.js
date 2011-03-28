@@ -164,6 +164,7 @@
                 this.wave = 0;
                 this.lastSpawn = 0;
                 this.spawnedCreeps = 0;
+                this.showHP = false;
 
                 this.initMenuSettings();
                 this.initBinds();
@@ -247,6 +248,9 @@
                                 game.selected.upgrade();
                             }
                         }
+                    } else if (e.charCode == 104) {
+                        // "h"-key
+                        game.showHP = true;
                     }
                     if (usedButton) {
                         e.preventDefault();
@@ -410,7 +414,7 @@
                 );
                 creepLength = this.creeps.length;
                 for (var i=0; i<creepLength; i++) {
-                    this.creeps[i].draw(this.context);
+                    this.creeps[i].draw(this.context, this.showHP);
                 }
                 towerLength = this.towers.length;
                 for (var i=0; i<towerLength; i++) {
@@ -897,7 +901,7 @@
                     game.cash += this.worth;
                 }
             };
-            this.draw = function( context, showHp ) {
+            this.draw = function( context, showHP ) {
                 if (this.settings.image === undefined) {
                     context.fillStyle = this.settings.color;
                     helperFunctions.fillCircle(
@@ -906,7 +910,7 @@
                         this.settings.radius
                     );
                 }
-                if (showHp && this.hp>0) {
+                if (showHP && this.hp>0) {
                     helperFunctions.drawBar(
                         context, this.position[0]-this.settings.radius,
                         this.position[1]+this.settings.radius,
