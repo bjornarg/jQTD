@@ -108,7 +108,7 @@
         getRandom : function(between) {
             return between[0] + (between[1]-between[0])*Math.random();
         },
-        // Makes a copy of the array without elements that that are 
+        // Makes a copy of the array without elements that are 
         // destroyed.
         removeDestroyed : function( arr ) {
             newArray = [];
