@@ -151,6 +151,7 @@
                 this.cash = this.settings.cash;
                 this.score = this.settings.score;
                 this.lives = this.settings.lives;
+                this.wave = this.settings.wave;
 
                 this.waveStart = helperFunctions.time()+this.settings.timeBetweenWaves;
                 // Initialize empty arrays for objects on the map
@@ -161,7 +162,6 @@
                 this.selected = undefined;
                 this.mouseX = 0;
                 this.mouseY = 0;
-                this.wave = 0;
                 this.lastSpawn = 0;
                 this.spawnedCreeps = 0;
                 this.showHP = false;
@@ -502,7 +502,7 @@
                 var cashWidth = this.context.measureText(cashString).width;
                 var scoreString = this.settings.scoreText+': '+this.score;
                 var scoreWidth = this.context.measureText(scoreString).width;
-                var liveString = this.settings.liveText+': '+this.lives;
+                var liveString = this.settings.livesText+': '+this.lives;
                 var liveWidth = this.context.measureText(liveString).width;
                 this.context.fillText(
                     waveString,
@@ -777,7 +777,7 @@
                         } else {
                             game.projectiles.push(
                                 new classes.Projectile(
-                                    {'seeking': this.settings.seeking,
+                                    {'targetType': this.settings.targetType,
                                      'speed': this.settings.projectileSpeed,
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
@@ -795,14 +795,14 @@
                         )) {
                             this.lastFire = currentTime;
                             var target;
-                            if (this.settings.seeking) {
+                            if (this.settings.targetType == 'seeking') {
                                 target = game.creeps[i];
                             } else {
                                 target = {'position': game.creeps[i].position};
                             }
                             game.projectiles.push(
                                 new classes.Projectile(
-                                    {'seeking': this.settings.seeking,
+                                    {'targetType': this.settings.targetType,
                                      'speed': this.settings.projectileSpeed,
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
@@ -953,13 +953,13 @@
             );
 
             this.update = function( game ) {
-                if ( this.settings.seeking && this.target.destroyed ) {
+                if ( this.settings.targetType == 'seeking' && this.target.destroyed ) {
                     // We want to remove a reference to any "live" targets as 
                     // soon as they're destroyed to free up memory
                     this.target = {position: target.position};
-                    this.settings.seeking = false;
+                    this.settings.targetType = false;
                 }
-                if ( this.settings.seeking ) {
+                if ( this.settings.targetType == 'seeking' ) {
                     this.angle = helperFunctions.calculateAngle(
                         this.position, this.target.position
                     );
@@ -967,12 +967,14 @@
                 this.position = helperFunctions.calculateNewPosition(
                     this.settings.speed, this.position, this.angle
                 );
+                if (this.settings.targetType == 'ground') {
+                }
                 if (this.position[0] > game.gameWidth || this.position[0] < 0 ||
                     this.position[1] > game.gameHeight || this.position[1] < 0) {
                     this.destroyed = true;
                 }
                 var radius = this.settings.radius;
-                if (this.settings.seeking) {
+                if (this.settings.targetType == 'seeking') {
                     if (this.target.settings.radius !== undefined) {
                         radius += this.target.settings.radius;
                     }
@@ -1030,13 +1032,12 @@
                 'waveText': 'Wave',
                 'cashText': 'Cash',
                 'scoreText': 'Score',
-                'liveText': 'Lives',
+                'livesText': 'Lives',
                 'cellWidth': 0, // Will be set when map is parsed
                 'cellHeight': 0, // Will be set when map is parsed
-                'creeps': [],
                 'map': '',
                 'score': 0,
-                'cash': 0,
+                'cash': 50,
                 'lives': 5,
                 'towers': [],
                 'wave': 0,
