@@ -1126,6 +1126,7 @@
                 'dpsText': 'DPS',
                 'rangeText': 'Range',
                 'splashText': 'Splash radius',
+                'costText': 'Upgrade',
             }
             var settings = {
                 'score': 0,
