@@ -529,15 +529,23 @@
                     this.settings.design.textHeight*4
                 );
                 for (var i=0; i<this.settings.towersLength; i++) {
-                    this.context.fillStyle = this.settings.towers[i].color;
                     var x = i % this.menuGrid.length;
                     var y = Math.floor(i/this.menuGrid.length);
-                    this.context.fillRect(
-                        this.menuGrid[x][y][0],
-                        this.menuGrid[x][y][1],
-                        this.settings.cellWidth,
-                        this.settings.cellHeight
-                    );
+                    if (this.settings.towers[i].image === undefined) {
+                        this.context.fillStyle = this.settings.towers[i].color;
+                        this.context.fillRect(
+                            this.menuGrid[x][y][0],
+                            this.menuGrid[x][y][1],
+                            this.settings.cellWidth,
+                            this.settings.cellHeight
+                        );
+                    } else {
+                        this.context.drawImage(
+                            this.settings.towers[i].image,
+                            this.menuGrid[x][y][0],
+                            this.menuGrid[x][y][1]
+                        );
+                    }
                 }
                 if (this.selected !== undefined) {
                     if (this.selected.type == 'tower') {
