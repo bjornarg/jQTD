@@ -554,7 +554,7 @@
                         this.context.font = this.settings.design.textStyle;
                         var xWidth = this.context.measureText("x").width;
                         this.context.fillText(
-                            "DPS: "+Math.round(
+                            this.settings.language.dpsText+": "+Math.round(
                                 this.selected.damage*1000/
                                 this.selected.fireRate/
                                 this.settings.frameTime
@@ -564,10 +564,27 @@
                         );
                         height += this.settings.design.textHeight;
                         this.context.fillText(
-                            "Range: "+this.selected.range,
+                            this.settings.language.rangeText+": "+this.selected.range,
                             this.gameWidth+xWidth,
                             height
                         );
+                        if (this.selected.splashRadius > 0) {
+                            height += this.settings.design.textHeight;
+                            this.context.fillText(
+                                this.settings.language.splashText+": "+this.selected.splashRadius,
+                                this.gameWidth+xWidth,
+                                height
+                            );
+                        }
+                        var upgradeCost = this.selected.upgradeCost();
+                        if (upgradeCost !== undefined) {
+                            height += this.settings.design.textHeight;
+                            this.context.fillText(
+                                this.settings.language.costText+": "+this.selected.upgradeCost(),
+                                this.gameWidth+xWidth,
+                                height
+                            );
+                        }
                     }
                 }
             };
@@ -1106,6 +1123,9 @@
                 'livesText': 'Lives',
                 'restartText': 'Click to restart',
                 'nextWaveText': 'Next wave in',
+                'dpsText': 'DPS',
+                'rangeText': 'Range',
+                'splashText': 'Splash radius',
             }
             var settings = {
                 'score': 0,
