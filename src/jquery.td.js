@@ -781,7 +781,8 @@
                                      'speed': this.settings.projectileSpeed,
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
-                                     'radius': this.settings.projectileRadius},
+                                     'radius': this.settings.projectileRadius,
+                                     'splashRadius': this.settings.splashRadius},
                                     this.center, this.lock)
                             );
                         }
@@ -806,7 +807,8 @@
                                      'speed': this.settings.projectileSpeed,
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
-                                     'radius': this.settings.projectileRadius},
+                                     'radius': this.settings.projectileRadius,
+                                     'splashRadius': this.settings.splashRadius},
                                     this.center, target)
                             );
                             break;
@@ -985,16 +987,36 @@
                     }
                 } else {
                     creepLength = game.creeps.length;
+                    var hitCreeps = [];
+                    var hit = false;
                     for (var i=0; i<creepLength; i++) {
                         if (game.creeps[i].settings.radius !== undefined) {
                             radius = this.settings.radius + game.creeps[i].settings.radius;
                         }
+                        if (this.settings.splashRadius > 0) {
+                            radius += this.settings.splashRadius;
+                        }
                         if (helperFunctions.inRange(this.position,
                                 radius, game.creeps[i].position)) {
-                            game.creeps[i].hp -= this.settings.damage;
-                            this.destroyed = true;
-                            break;
+                            if (this.settings.splashRadius > 0) {
+                                hitCreeps.push(game.creeps[i]);
+                                if (helperFunctions.inRange(this.position,
+                                        radius-this.settings.splashRadius,
+                                        game.creeps[i].position)) {
+                                    hit = true;
+                                }
+                            } else {
+                                game.creeps[i].hp -= this.settings.damage;
+                                this.destroyed = true;
+                                break;
+                            }
                         }
+                    }
+                    if (hit) {
+                        for (var i=0; i<hitCreeps.length; i++) {
+                            hitCreeps[i].hp -= this.settings.damage;
+                        }
+                        this.destroyed = true;
                     }
                 }
             };
