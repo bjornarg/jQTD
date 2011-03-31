@@ -1001,6 +1001,12 @@
                         this.position[0], this.position[1],
                         this.radius
                     );
+                } else {
+                    context.drawImage(
+                        this.image,
+                        this.position[0],
+                        this.position[1]
+                    );
                 }
                 if (showHP && this.hp>0) {
                     helperFunctions.drawBar(
@@ -1018,9 +1024,13 @@
             this.position = position;
             this.target = target;
             this.destroyed = false;
+            this.distanceTravelled = 0;
             this.angle = helperFunctions.calculateAngle(
                 position, target.position
             );
+            if (settings.targetType == 'ground') {
+                this.distance = helperFunctions.calculateDistance(position, target.position);
+            }
 
             this.update = function( game ) {
                 if ( this.settings.targetType == 'seeking' && this.target.destroyed ) {
@@ -1037,51 +1047,57 @@
                 this.position = helperFunctions.calculateNewPosition(
                     this.settings.speed, this.position, this.angle
                 );
-                if (this.settings.targetType == 'ground') {
-                }
+                this.distanceTravelled += this.settings.speed;
                 if (this.position[0] > game.gameWidth || this.position[0] < 0 ||
                     this.position[1] > game.gameHeight || this.position[1] < 0) {
                     this.destroyed = true;
                 }
                 var radius = this.settings.radius;
+                var hitCreeps = [];
+                var hit = false;
+                creepLength = game.creeps.length;
                 if (this.settings.targetType == 'seeking') {
                     if (this.target.settings.radius !== undefined) {
                         radius += this.target.settings.radius;
                     }
                     if (helperFunctions.inRange(
-                        this.position, radius, target.position)) {
+                            this.position, radius, target.position)) {
                         this.hitCreep( game, target );
+                        hit = true;
                     }
-                } else {
-                    creepLength = game.creeps.length;
-                    var hitCreeps = [];
-                    var hit = false;
-                    for (var i=0; i<creepLength; i++) {
-                        if (game.creeps[i].settings.radius !== undefined) {
-                            radius = this.settings.radius + game.creeps[i].settings.radius;
-                        }
+                } else if (this.settings.targetType == 'ground') {
+                    if (this.distanceTravelled >= this.distance) {
+                        this.destroyed = true;
+                        hit = true;
+                    } else {
+                        return;
+                    }
+                }
+                for (var i=0; i<creepLength; i++) {
+                    if (game.creeps[i].settings.radius !== undefined) {
+                        radius = this.settings.radius + game.creeps[i].settings.radius;
+                    }
+                    if (this.settings.splashRadius > 0) {
+                        radius += this.settings.splashRadius;
+                    }
+                    if (helperFunctions.inRange(this.position,
+                            radius, game.creeps[i].position)) {
                         if (this.settings.splashRadius > 0) {
-                            radius += this.settings.splashRadius;
-                        }
-                        if (helperFunctions.inRange(this.position,
-                                radius, game.creeps[i].position)) {
-                            if (this.settings.splashRadius > 0) {
-                                hitCreeps.push(game.creeps[i]);
-                                if (helperFunctions.inRange(this.position,
-                                        radius-this.settings.splashRadius,
-                                        game.creeps[i].position)) {
-                                    hit = true;
-                                }
-                            } else {
-                                this.hitCreep( game, game.creeps[i] );
-                                break;
+                            hitCreeps.push(game.creeps[i]);
+                            if (helperFunctions.inRange(this.position,
+                                    radius-this.settings.splashRadius,
+                                    game.creeps[i].position)) {
+                                hit = true;
                             }
+                        } else {
+                            this.hitCreep( game, game.creeps[i] );
+                            break;
                         }
                     }
-                    if (hit) {
-                        for (var i=0; i<hitCreeps.length; i++) {
-                            this.hitCreep( game, hitCreeps[i] );
-                        }
+                }
+                if (hit) {
+                    for (var i=0; i<hitCreeps.length; i++) {
+                        this.hitCreep( game, hitCreeps[i] );
                     }
                 }
             };
@@ -1100,6 +1116,12 @@
                     helperFunctions.fillCircle(
                         context, this.position[0],
                         this.position[1], this.settings.radius
+                    );
+                } else {
+                    context.drawImage(
+                        this.image,
+                        this.position[0],
+                        this.position[1]
                     );
                 }
             };
