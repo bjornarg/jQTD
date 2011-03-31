@@ -153,7 +153,7 @@
                 this.lives = this.settings.lives;
                 this.wave = this.settings.wave;
 
-                this.waveStart = helperFunctions.time()+this.settings.timeBetweenWaves;
+                this.waveStart = this.settings.timeBetweenWaves;
                 // Initialize empty arrays for objects on the map
                 this.towers = [];
                 this.creeps = [];
@@ -378,24 +378,19 @@
                 this.towers = helperFunctions.removeDestroyed( this.towers );
             };
             this.spawnCreeps = function() {
-                currentTime = helperFunctions.time();
                 if (this.wave == this.settings.waves.length) {
                     this.endGame();
                     return;
                 }
-                if (this.waveStart <= currentTime) {
-                    if (this.spawnedCreeps >=
-                            this.settings.waves[this.wave].creeps) {
+                if (this.waveStart <= 0) {
+                    if (this.spawnedCreeps >= this.settings.waves[this.wave].creeps) {
                         if (this.creeps.length == 0) {
-                            this.waveStart = (
-                                currentTime+this.settings.timeBetweenWaves
-                            );
+                            this.waveStart = this.settings.timeBetweenWaves;
                             this.wave++;
                             this.spawnedCreeps = 0;
                         }
-                    } else if (currentTime-this.lastSpawn >=
-                            this.settings.waves[this.wave].timeBetweenSpawns) {
-                        this.lastSpawn = currentTime;
+                    } else if (this.lastSpawn <= 0) {
+                        this.lastSpawn = this.settings.waves[this.wave].timeBetweenSpawns;
                         pathNum = helperFunctions.getRandom(
                             [0, this.map.pathsLength]
                         );
@@ -409,7 +404,11 @@
                         creep.init(this);
                         this.creeps.push(creep);
                         this.spawnedCreeps++;
+                    } else {
+                        this.lastSpawn--;
                     }
+                } else {
+                    this.waveStart--;
                 }
             };
 
@@ -467,13 +466,12 @@
                     );
                 }
                 this.drawMenu();
-                currentTime = helperFunctions.time();
-                if (currentTime < this.waveStart) {
+                if (this.waveStart > 0) {
                     this.context.strokeStyle = this.settings.design.dialogBorderColor;
                     this.context.fillStyle = this.settings.design.dialogBackgroundColor;
                     this.context.font = this.settings.design.largeTextStyle;
-                    timeToNextWave = Math.round((this.waveStart-currentTime)/1000);
-                    nextWaveText = "Next wave in "+timeToNextWave+"s";
+                    timeToNextWave = Math.round(this.waveStart*this.settings.frameTime/1000);
+                    nextWaveText = this.settings.language.nextWaveText+" "+timeToNextWave+"s";
                     nextWaveWidth = this.context.measureText(nextWaveText).width;
                     widthLeft = this.gameWidth-nextWaveWidth;
                     helperFunctions.fillRoundedRect(
@@ -491,7 +489,7 @@
                     this.context.fillStyle = this.settings.design.textColor;
                     this.context.fillText(
                         nextWaveText, widthLeft/2,
-                        50+this.settings.design.largeTextHeight
+                        50+this.settings.design.largeTextHeight*1.5
                     );
                 }
             };
@@ -502,13 +500,13 @@
                 );
                 this.context.font = this.settings.design.textStyle;
                 this.context.fillStyle = this.settings.design.menuTextColor;
-                var waveString = this.settings.waveText+': '+(this.wave+1);
+                var waveString = this.settings.language.waveText+': '+(this.wave+1);
                 var waveWidth = this.context.measureText(waveString).width;
-                var cashString = this.settings.cashText+': '+this.cash;
+                var cashString = this.settings.language.cashText+': '+this.cash;
                 var cashWidth = this.context.measureText(cashString).width;
-                var scoreString = this.settings.scoreText+': '+this.score;
+                var scoreString = this.settings.language.scoreText+': '+this.score;
                 var scoreWidth = this.context.measureText(scoreString).width;
-                var liveString = this.settings.livesText+': '+this.lives;
+                var liveString = this.settings.language.livesText+': '+this.lives;
                 var liveWidth = this.context.measureText(liveString).width;
                 this.context.fillText(
                     waveString,
@@ -543,14 +541,32 @@
                 }
                 if (this.selected !== undefined) {
                     if (this.selected.type == 'tower') {
-                        console.log(this.selected);
                         this.context.font = this.settings.design.largeTextStyle;
                         this.context.fillStyle = this.settings.design.menuTextColor;
                         var textWidth = this.context.measureText(this.selected.settings.name).width;
+                        var height = this.menuGrid.endHeight;
                         this.context.fillText(
                             this.selected.settings.name,
                             this.gameWidth+(this.settings.menuWidth-textWidth)/2,
-                            this.menuGrid.endHeight
+                            height
+                        );
+                        height += this.settings.design.largeTextHeight;
+                        this.context.font = this.settings.design.textStyle;
+                        var xWidth = this.context.measureText("x").width;
+                        this.context.fillText(
+                            "DPS: "+Math.round(
+                                this.selected.damage*1000/
+                                this.selected.fireRate/
+                                this.settings.frameTime
+                            ),
+                            this.gameWidth+xWidth,
+                            height
+                        );
+                        height += this.settings.design.textHeight;
+                        this.context.fillText(
+                            "Range: "+this.selected.range,
+                            this.gameWidth+xWidth,
+                            height
                         );
                     }
                 }
@@ -568,8 +584,8 @@
                     this.settings.callback(this.score);
                 }
                 this.context.fillStyle = this.settings.design.textColor;
-                reclickText = "Click to restart";
-                reclickWidth = this.context.measureText(reclickText).width;
+                var reclickText = this.settings.language.restartText;
+                var reclickWidth = this.context.measureText(reclickText).width;
                 this.context.fillText(
                     reclickText,
                     (this.gameWidth-reclickWidth)/2,
@@ -1071,7 +1087,7 @@
                 'textHeight': 20, // Since there's no way to measure this
                 'textColor': 'black',
                 'largeTextStyle': '20pt Arial',
-                'largeTextHeight': 30,
+                'largeTextHeight': 25,
                 'largeTextColor': 'white',
                 'backgroundColor': 'white',
                 'menuBackgroundColor': 'rgb(22, 33, 16)',
@@ -1081,24 +1097,23 @@
                 'dialogTextColor': 'rgb(124, 159, 105)',
                 'rangeStrokeColor': 'rgba(108, 127, 97, 0.8)',
                 'rangeFillColor': 'rgba(191, 205, 184, 0.2)',
-
                 'roadColor': 'rgb(10, 0, 12)',
             }
-            var settings = {
+            var language = {
                 'waveText': 'Wave',
                 'cashText': 'Cash',
                 'scoreText': 'Score',
                 'livesText': 'Lives',
-                'cellWidth': 0, // Will be set when map is parsed
-                'cellHeight': 0, // Will be set when map is parsed
-                'map': '',
+                'restartText': 'Click to restart',
+                'nextWaveText': 'Next wave in',
+            }
+            var settings = {
                 'score': 0,
                 'cash': 50,
                 'lives': 5,
-                'towers': [],
                 'wave': 0,
-                'timeBetweenWaves': 5000,
-                'menuWidth': 0,
+                'timeBetweenWaves': 400,
+                'frameTime': 13,
             };
             // As it is jQuery standard to return the object to maintain
             // chainability, we do it here. Don't really know when it will be
@@ -1110,13 +1125,17 @@
                     if ( options.design ) {
                         $.extend( design, options.design );
                     }
+                    if ( options.language ) {
+                        $.extend( language, options.language );
+                    }
                 }
                 settings.design = design;
+                settings.language = language;
                 var game = new classes['Game']( $this[0], settings );
                 game.init();
                 var updateFunction = function() {
                     game.update();
-                    setTimeout(updateFunction, 13);
+                    setTimeout(updateFunction, settings.frameTime);
                 };
                 updateFunction();
             });
