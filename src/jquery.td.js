@@ -158,6 +158,7 @@
                 this.towers = [];
                 this.creeps = [];
                 this.projectiles = [];
+                this.effects = [];
 
                 this.selected = undefined;
                 this.mouseX = 0;
@@ -348,6 +349,10 @@
                     this.endGame();
                     return;
                 }
+                effectLength = this.effects.length;
+                for (var i=0; i<effectLength; i++) {
+                    this.effects[i].update(this);
+                }
                 creepLength = this.creeps.length;
                 for (var i=0; i<creepLength; i++) {
                     this.creeps[i].update(this);
@@ -365,6 +370,7 @@
                 this.draw();
             };
             this.removeDestroyed = function() {
+                this.effects = helperFunctions.removeDestroyed( this.effects );
                 this.creeps = helperFunctions.removeDestroyed( this.creeps );
                 this.projectiles = helperFunctions.removeDestroyed(
                     this.projectiles
@@ -747,6 +753,7 @@
             this.damage = this.settings.damageLevels[0];
             this.range = this.settings.rangeLevels[0];
             this.fireRate = this.settings.fireRateLevels[0];
+            this.splashRadius = this.settings.splashRadiusLevels[0];
             this.lastFire = 0;
 
             this.lock = undefined;
@@ -782,7 +789,8 @@
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
                                      'radius': this.settings.projectileRadius,
-                                     'splashRadius': this.settings.splashRadius},
+                                     'effect': this.settings.effect,
+                                     'splashRadius': this.splashRadius},
                                     this.center, this.lock)
                             );
                         }
@@ -808,7 +816,8 @@
                                      'damage': this.damage,
                                      'color': this.settings.projectileColor,
                                      'radius': this.settings.projectileRadius,
-                                     'splashRadius': this.settings.splashRadius},
+                                     'effect': this.settings.effect,
+                                     'splashRadius': this.splashRadius},
                                     this.center, target)
                             );
                             break;
@@ -849,6 +858,7 @@
                 this.damage = this.settings.damageLevels[this.level];
                 this.range = this.settings.rangeLevels[this.level];
                 this.fireRate = this.settings.fireRateLevels[this.level];
+                this.splashRadius = this.settings.splashRadiusLevels[this.level];
                 this.level++;
             };
         },
@@ -858,6 +868,7 @@
             this.level = level;
 
             this.type = "creep";
+            this.original = {};
 
             this.init = function( game ) {
                 this.position = game.getCellCenter(this.path[0].line[0]);
@@ -868,6 +879,13 @@
                 this.hp = this.settings.hpLevels[this.level-1];
                 this.speed = helperFunctions.getRandom(this.settings.speedRange);
                 this.pathLength = this.path.length;
+                this.color = this.settings.color;
+                this.radius = this.settings.radius;
+                this.image = this.settings.image;
+                this.original.speed = this.speed;
+                this.original.color = this.color;
+                this.original.radius = this.radius;
+                this.original.image = this.image;
             };
 
             this.update = function( game ) {
@@ -926,19 +944,19 @@
                 }
             };
             this.draw = function( context, showHP ) {
-                if (this.settings.image === undefined) {
-                    context.fillStyle = this.settings.color;
+                if (this.image === undefined) {
+                    context.fillStyle = this.color;
                     helperFunctions.fillCircle(
                         context,
                         this.position[0], this.position[1],
-                        this.settings.radius
+                        this.radius
                     );
                 }
                 if (showHP && this.hp>0) {
                     helperFunctions.drawBar(
-                        context, this.position[0]-this.settings.radius,
-                        this.position[1]+this.settings.radius,
-                        this.settings.radius*2, 5,
+                        context, this.position[0]-this.radius,
+                        this.position[1]+this.radius,
+                        this.radius*2, 5,
                         this.hp/this.settings.hpLevels[this.level-1],
                         "red", "green"
                     );
@@ -982,8 +1000,7 @@
                     }
                     if (helperFunctions.inRange(
                         this.position, radius, target.position)) {
-                        this.target.hp -= this.settings.damage;
-                        this.destroyed = true;
+                        this.hitCreep( game, target );
                     }
                 } else {
                     creepLength = game.creeps.length;
@@ -1006,19 +1023,26 @@
                                     hit = true;
                                 }
                             } else {
-                                game.creeps[i].hp -= this.settings.damage;
-                                this.destroyed = true;
+                                this.hitCreep( game, game.creeps[i] );
                                 break;
                             }
                         }
                     }
                     if (hit) {
                         for (var i=0; i<hitCreeps.length; i++) {
-                            hitCreeps[i].hp -= this.settings.damage;
+                            this.hitCreep( game, hitCreeps[i] );
                         }
-                        this.destroyed = true;
                     }
                 }
+            };
+            this.hitCreep = function( game, target ) {
+                target.hp -= this.settings.damage;
+                if (this.settings.effect !== undefined) {
+                    effect = new this.settings.effect( target );
+                    effect.init();
+                    game.effects.push( effect );
+                }
+                this.destroyed = true;
             };
             this.draw = function( context ) {
                 if (this.image === undefined) {
