@@ -543,6 +543,15 @@
                 }
                 if (this.selected !== undefined) {
                     if (this.selected.type == 'tower') {
+                        console.log(this.selected);
+                        this.context.font = this.settings.design.largeTextStyle;
+                        this.context.fillStyle = this.settings.design.menuTextColor;
+                        var textWidth = this.context.measureText(this.selected.settings.name).width;
+                        this.context.fillText(
+                            this.selected.settings.name,
+                            this.gameWidth+(this.settings.menuWidth-textWidth)/2,
+                            this.menuGrid.endHeight
+                        );
                     }
                 }
             };
@@ -773,8 +782,8 @@
             }
 
             this.update = function(game) {
-                currentTime = helperFunctions.time();
-                if (currentTime-this.lastFire >= this.fireRate) {
+                this.lastFire--;
+                if (this.lastFire <= 0) {
                     if (this.lock !== undefined) {
                         if (this.lock.destroyed ||
                             !inRange(this.center,
@@ -802,7 +811,7 @@
                             this.range+game.creeps[i].settings.radius,
                             game.creeps[i].position
                         )) {
-                            this.lastFire = currentTime;
+                            this.lastFire = this.fireRate;
                             var target;
                             if (this.settings.targetType == 'seeking') {
                                 target = game.creeps[i];
@@ -1060,10 +1069,11 @@
             var design = {
                 'textStyle': '12pt Arial',
                 'textHeight': 20, // Since there's no way to measure this
+                'textColor': 'black',
                 'largeTextStyle': '20pt Arial',
                 'largeTextHeight': 30,
+                'largeTextColor': 'white',
                 'backgroundColor': 'white',
-                'textColor': 'black',
                 'menuBackgroundColor': 'rgb(22, 33, 16)',
                 'menuTextColor': 'rgb(191, 205, 184)',
                 'dialogBackgroundColor': 'rgba(83, 93, 87, 0.5)',
