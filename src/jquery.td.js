@@ -242,7 +242,7 @@
                         }
                     } else if (e.charCode == 117) {
                         // "u"-key
-                        if (game.selected !== undefined) {
+                        if (game.selected !== undefined && game.selected.type == 'tower') {
                             if (game.selected.upgradeCost() <= game.cash) {
                                 game.cash -= game.selected.upgradeCost();
                                 game.selected.upgrade();
@@ -257,6 +257,17 @@
                         // "c"-key
                         game.guiObject = undefined;
                         usedButton = true;
+                    } else if (e.charCode == 115) {
+                        // "s"-key
+                        if (game.selected !== undefined && game.selected.type == 'tower') {
+                            game.selected.sell();
+                            game.map.busyCells = game.map.removePointFromArray(
+                                game.map.busyCells,
+                                game.getCell(game.selected.position)
+                            );
+                            game.cash += game.selected.worth;
+                            game.selected = undefined;
+                        }
                     }
                     if (usedButton) {
                         e.preventDefault();
@@ -424,7 +435,7 @@
                 );
                 if (this.guiObject !== undefined) {
                     cell = this.getCell([this.mouseX, this.mouseY]);
-                    this.context.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                    this.context.fillStyle = this.settings.design.prebuildColor;
                     this.context.fillRect(
                         cell[0]*this.settings.cellWidth,
                         cell[1]*this.settings.cellHeight,
@@ -769,12 +780,22 @@
             };
             this.pointInArray = function( arr, point ) {
                 arrayLength = arr.length;
-                for (j=0; j<arrayLength; j++) {
+                for (var j=0; j<arrayLength; j++) {
                     if (arr[j][0] == point[0] && arr[j][1] == point[1]) {
                         return true;
                     }
                 }
                 return false;
+            };
+            this.removePointFromArray = function( arr, point ) {
+                arrayLength = arr.length;
+                newArray = [];
+                for (var j=0; j<arrayLength; j++) {
+                    if (arr[j][0] != point[0] || arr[j][1] != point[1]) {
+                        newArray.push(arr[j]);
+                    }
+                }
+                return newArray;
             };
             this.draw = function( context, settings, cellSize ) {
                 for (var x=0; x<this.width; x++) {
@@ -804,6 +825,7 @@
             this.range = this.settings.rangeLevels[0];
             this.fireRate = this.settings.fireRateLevels[0];
             this.splashRadius = this.settings.splashRadiusLevels[0];
+            this.worth = this.settings.worthLevels[0];
             this.lastFire = 0;
 
             this.lock = undefined;
@@ -909,7 +931,11 @@
                 this.range = this.settings.rangeLevels[this.level];
                 this.fireRate = this.settings.fireRateLevels[this.level];
                 this.splashRadius = this.settings.splashRadiusLevels[this.level];
+                this.worth = this.settings.worthLevels[this.level];
                 this.level++;
+            };
+            this.sell = function() {
+                this.destroyed = true;
             };
         },
         Creep : function( settings, level, path ) {
@@ -1145,6 +1171,7 @@
                 'rangeStrokeColor': 'rgba(108, 127, 97, 0.8)',
                 'rangeFillColor': 'rgba(191, 205, 184, 0.2)',
                 'roadColor': 'rgb(10, 0, 12)',
+                'prebuildColor': 'rgba(0, 0, 0, 0.2)',
             }
             var language = {
                 'waveText': 'Wave',
