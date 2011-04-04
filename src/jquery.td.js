@@ -166,6 +166,7 @@
                 this.lastSpawn = 0;
                 this.spawnedCreeps = 0;
                 this.showHP = false;
+                this.menuUpdated = true;
 
                 this.initMenuSettings();
                 this.initBinds();
@@ -244,6 +245,7 @@
                         // "u"-key
                         if (game.selected !== undefined && game.selected.type == 'tower') {
                             if (game.selected.upgradeCost() <= game.cash) {
+                                game.menuUpdated = true;
                                 game.cash -= game.selected.upgradeCost();
                                 game.selected.upgrade();
                             }
@@ -267,6 +269,7 @@
                             );
                             game.cash += game.selected.worth;
                             game.selected = undefined;
+                            game.menuUpdated = true;
                         }
                     }
                     if (usedButton) {
@@ -309,6 +312,7 @@
                         }
                     }
                 }
+                this.menuUpdated = true;
             };
 
             this.menuSelect = function() {
@@ -338,6 +342,7 @@
                     return
                 }
                 this.cash -= this.guiObject.costLevels[0];
+                this.menuUpdated = true;
                 position = [cell[0]*this.settings.cellWidth,
                     cell[1]*this.settings.cellHeight];
                 tower = new classes.Tower(
@@ -431,7 +436,7 @@
                     return;
                 }
                 this.context.clearRect(
-                    0, 0, this.canvas.width, this.canvas.height
+                    0, 0, this.gameWidth, this.gameHeight
                 );
                 if (this.guiObject !== undefined) {
                     cell = this.getCell([this.mouseX, this.mouseY]);
@@ -476,7 +481,9 @@
                         this.selected.range
                     );
                 }
-                this.drawMenu();
+                if (this.menuUpdated) {
+                    this.drawMenu();
+                }
                 if (this.waveStart > 0) {
                     this.context.strokeStyle = this.settings.design.dialogBorderColor;
                     this.context.fillStyle = this.settings.design.dialogBackgroundColor;
@@ -505,6 +512,7 @@
                 }
             };
             this.drawMenu = function() {
+                this.menuUpdated = false;
                 this.context.fillStyle = this.settings.design.menuBackgroundColor;
                 this.context.fillRect(
                     this.gameWidth, 0, this.settings.menuWidth, this.gameHeight
@@ -1018,6 +1026,7 @@
                     game.score += this.worth;
                     game.cash += this.worth;
                 }
+                game.menuUpdated = true;
             };
             this.draw = function( context, showHP ) {
                 if (this.image === undefined) {
