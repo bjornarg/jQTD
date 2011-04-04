@@ -171,7 +171,12 @@
                 this.initMenuSettings();
                 this.initBinds();
 
-                this.running = true;
+                if (!this.settings.autoStart) {
+                    this.drawGamePreStart();
+                    this.running = false;
+                } else {
+                    this.running = true;
+                }
             };
             // Initialize variables that are used to create the menu.
             this.initMenuSettings = function() {
@@ -218,6 +223,7 @@
                 });
                 $(this.canvas).bind('click', function(e) {
                     if (!game.running) {
+                        game.settings.autoStart = true;
                         game.init();
                     } else {
                         if (game.mouseX > game.gameWidth && game.mouseX < game.canvas.width) {
@@ -656,6 +662,34 @@
                     (this.gameWidth-reclickWidth)/2,
                     (this.gameHeight-this.settings.design.largeTextHeight)/2
                 );
+            };
+            this.drawGamePreStart = function() {
+                this.context.font = this.settings.design.largeTextStyle;
+                this.context.fillStyle = this.settings.design.dialogBackgroundColor;
+                this.context.strokeStyle = this.settings.design.dialogBorderColor;
+                var startText = this.settings.language.startText;
+                var startWidth = this.context.measureText(startText).width;
+                helperFunctions.fillRoundedRect(
+                    this.context,
+                    10, 10,
+                    this.gameWidth-20,
+                    this.gameHeight-20,
+                    20
+                );
+                helperFunctions.strokeRoundedRect(
+                    this.context,
+                    10, 10,
+                    this.gameWidth-20,
+                    this.gameHeight-20,
+                    20
+                );
+                this.context.fillStyle = this.settings.design.textColor;
+                this.context.fillText(
+                    startText,
+                    (this.gameWidth-startWidth)/2,
+                    (this.gameHeight-this.settings.design.largeTextHeight)/2
+                );
+                this.drawMenu();
             };
 
             this.getCell = function( position ) {
@@ -1209,6 +1243,7 @@
                 'scoreText': 'Score',
                 'livesText': 'Lives',
                 'restartText': 'Click to restart',
+                'startText': 'Click to start',
                 'nextWaveText': 'Next wave in',
                 'dpsText': 'DPS',
                 'rangeText': 'Range',
@@ -1223,6 +1258,7 @@
                 'wave': 0,
                 'timeBetweenWaves': 400,
                 'frameTime': 13,
+                'autoStart': false,
             };
             // As it is jQuery standard to return the object to maintain
             // chainability, we do it here. Don't really know when it will be
