@@ -619,21 +619,42 @@
             /* End game */
 
             this.endGame = function() {
+                if (this.settings.callback !== undefined) {
+                    this.settings.callback(this.score);
+                }
                 this.context.clearRect(0, 0, this.gameWidth, this.gameHeight);
                 this.running = false;
                 this.context.font = this.settings.design.largeTextStyle;
                 this.context.fillStyle = this.settings.design.dialogBackgroundColor;
                 this.context.strokeStyle = this.settings.design.dialogBorderColor;
-                if (this.settings.callback !== undefined) {
-                    this.settings.callback(this.score);
-                }
-                this.context.fillStyle = this.settings.design.textColor;
                 var reclickText = this.settings.language.restartText;
                 var reclickWidth = this.context.measureText(reclickText).width;
+                var scoreText = this.settings.language.finalScoreText+": "+this.score;
+                var scoreWidth = this.context.measureText(scoreText).width;
+                helperFunctions.fillRoundedRect(
+                    this.context,
+                    10, 10,
+                    this.gameWidth-20,
+                    this.gameHeight-20,
+                    20
+                );
+                helperFunctions.strokeRoundedRect(
+                    this.context,
+                    10, 10,
+                    this.gameWidth-20,
+                    this.gameHeight-20,
+                    20
+                );
+                this.context.fillStyle = this.settings.design.textColor;
+                this.context.fillText(
+                    scoreText,
+                    (this.gameWidth-scoreWidth)/2,
+                    (this.gameHeight-this.settings.design.largeTextHeight)/2-this.settings.design.largeTextHeight*2
+                );
                 this.context.fillText(
                     reclickText,
                     (this.gameWidth-reclickWidth)/2,
-                    50
+                    (this.gameHeight-this.settings.design.largeTextHeight)/2
                 );
             };
 
@@ -1193,6 +1214,7 @@
                 'rangeText': 'Range',
                 'splashText': 'Splash radius',
                 'costText': 'Upgrade',
+                'finalScoreText': 'Final score',
             }
             var settings = {
                 'score': 0,
