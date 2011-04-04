@@ -438,7 +438,7 @@
                 this.context.clearRect(
                     0, 0, this.gameWidth, this.gameHeight
                 );
-                if (this.guiObject !== undefined) {
+                if (this.guiObject !== undefined && this.mouseX < this.gameWidth) {
                     cell = this.getCell([this.mouseX, this.mouseY]);
                     this.context.fillStyle = this.settings.design.prebuildColor;
                     this.context.fillRect(
