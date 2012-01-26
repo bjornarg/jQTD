@@ -90,26 +90,41 @@
                 return Math.atan(yDistance / xDistance);
             }
         },
+        /**
+         * Calculates the distance between two points
+         */
         calculateDistance : function( position, target ) {
             return Math.sqrt(
                 Math.pow(position[0]-target[0], 2) + 
                 Math.pow(position[1]-target[1], 2)
             );
         },
+        /**
+         * Calculates the new position of an object based on it's current
+         * position, the distance to be traveled and the angle at which it is
+         * traveling.
+         */
         calculateNewPosition : function( distance, position, angle ) {
             return [
                 position[0] + Math.cos(angle) * distance,
                 position[1] + Math.sin(angle) * distance
             ];
         },
+        /**
+         * Gets current time in milliseconds.
+         */
         time : function() {
             return (new Date()).getTime();
         },
+        /**
+         * Gets a random number inside the defined range.
+         */
         getRandom : function(between) {
             return between[0] + (between[1]-between[0])*Math.random();
         },
-        // Makes a copy of the array without elements that are 
-        // destroyed.
+        /**
+         * Makes a copy of the array without elements that are destroyed.
+         */
         removeDestroyed : function( arr ) {
             newArray = [];
             arrLength = arr.length;
@@ -120,11 +135,15 @@
             }
             return newArray;
         },
+        /**
+         * Checks whether a point is in range of another, based on the given
+         * radius.
+         */
         inRange : function( position, radius, target ) {
             distance = helperFunctions.calculateDistance(
                 position, target
             );
-            if (distance-radius <= 0) {
+            if (distance <= radius) {
                 return true;
             }
             return false;
